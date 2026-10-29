@@ -1,0 +1,400 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Element Lab | Chemistry Flashcards</title>
+<style>
+:root {
+  --bg: #080b16;
+  --panel: #11182b;
+  --cyan: #55f6ff;
+  --purple: #a78bfa;
+  --green: #65f7ad;
+  --text: #f4f7ff;
+  --muted: #8995b4;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  background:
+    radial-gradient(ellipse at 15% 5%, #19234b 0, transparent 42%),
+    radial-gradient(ellipse at 90% 80%, #251344 0, transparent 40%),
+    var(--bg);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+button, select { font: inherit; }
+button { cursor: pointer; }
+.app { max-width: 950px; margin: auto; padding: 25px 18px 50px; }
+header { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.logo { font-weight:900; letter-spacing:2px; font-size:19px; }
+.logo span { color:var(--cyan); }
+.pill {
+  border:1px solid #34405d; border-radius:30px;
+  padding:7px 12px; color:var(--green); font-size:12px;
+}
+.hero { margin:43px 0 26px; }
+.eyebrow { color:var(--cyan); font-size:12px; letter-spacing:3px; font-weight:800; }
+h1 { font-size:clamp(32px,7vw,55px); line-height:1.05; margin:12px 0; }
+h1 span {
+  background:linear-gradient(90deg,var(--cyan),var(--purple));
+  color:transparent; background-clip:text;
+}
+.subtitle { color:var(--muted); line-height:1.6; }
+.stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:25px 0; }
+.stat, .controls, .side-panel {
+  background:#11182bd9; border:1px solid #29344e;
+  border-radius:16px; padding:17px;
+}
+.stat strong { display:block; font-size:26px; }
+.stat small { color:var(--muted); }
+.progress-bg { height:6px; background:#28324a; border-radius:8px; margin-top:12px; overflow:hidden; }
+.progress-fill { height:100%; width:0; background:linear-gradient(90deg,var(--cyan),var(--purple)); transition:width .3s; }
+.workspace { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(230px,1fr); gap:18px; }
+.label { display:block; color:var(--muted); font-size:12px; margin-bottom:8px; }
+select {
+  width:100%; padding:12px; color:var(--text);
+  background:#0b1020; border:1px solid #35415f; border-radius:10px;
+}
+.flashcard-area { perspective:1200px; margin:18px 0 12px; }
+.card {
+  width:100%; min-height:310px; position:relative;
+  transform-style:preserve-3d; transition:transform .55s;
+  cursor:pointer; border:0; padding:0; background:none; color:inherit;
+}
+.card.flipped { transform:rotateY(180deg); }
+.face {
+  position:absolute; inset:0; min-height:310px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  border:1px solid #3d4a6d; border-radius:24px;
+  backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  background:linear-gradient(145deg,#192542,#101526);
+  box-shadow:0 15px 45px #0005;
+  overflow:hidden; padding:20px;
+}
+.face::before {
+  content:""; position:absolute; width:190px; height:190px;
+  border-radius:50%; border:1px solid #55f6ff22;
+  box-shadow:0 0 0 25px #55f6ff08,0 0 0 50px #55f6ff05;
+}
+.back { transform:rotateY(180deg); background:linear-gradient(145deg,#25204b,#11182b); }
+.card-top { position:absolute; top:18px; left:20px; right:20px; display:flex; justify-content:space-between; color:var(--muted); font-size:11px; letter-spacing:1px; }
+.atomic { font-size:14px; color:var(--cyan); }
+.symbol { font-size:clamp(76px,15vw,112px); font-weight:900; line-height:1.1; z-index:1; text-shadow:0 0 35px #55f6ff35; }
+.element-name { font-size:30px; font-weight:800; z-index:1; }
+.hint { font-size:12px; color:var(--muted); margin-top:18px; z-index:1; }
+.card-actions { display:grid; grid-template-columns:1fr 1.3fr 1fr; gap:9px; }
+.btn {
+  border:1px solid #37425e; border-radius:11px; padding:12px 8px;
+  color:var(--text); background:#171f35; font-weight:700;
+}
+.btn:hover { filter:brightness(1.2); }
+.btn.primary { color:#07121a; background:var(--cyan); border-color:var(--cyan); }
+.btn.good { border-color:#287b5a; color:var(--green); }
+.btn.bad { border-color:#77405b; color:#ff9cc4; }
+.rating { display:flex; gap:8px; margin-top:10px; }
+.rating .btn { flex:1; }
+.side-panel h3 { margin:0 0 6px; }
+.muted { color:var(--muted); font-size:13px; line-height:1.5; }
+.element-list { display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin-top:15px; }
+.mini {
+  min-width:0; aspect-ratio:1; padding:3px; border-radius:8px;
+  border:1px solid #303c59; background:#0d1425; color:var(--muted);
+  font-size:12px;
+}
+.mini.active { border-color:var(--cyan); color:var(--cyan); background:#14303b; }
+.mini.known { border-color:#267b58; color:var(--green); }
+.mini span { display:block; font-size:9px; opacity:.8; }
+.section-title { margin:30px 0 12px; }
+.quiz-question { font-size:22px; font-weight:800; margin:18px 0; }
+.quiz-options { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.quiz-option { min-height:55px; }
+.quiz-option.correct { border-color:var(--green); color:var(--green); }
+.quiz-option.wrong { border-color:#ff769c; color:#ff769c; }
+.message { min-height:25px; margin-top:12px; color:var(--green); font-size:14px; }
+footer { margin-top:35px; text-align:center; color:var(--muted); font-size:12px; }
+.hidden { display:none !important; }
+@media(max-width:650px) {
+  .workspace { grid-template-columns:1fr; }
+  .side-panel { order:2; }
+  .card,.face { min-height:285px; }
+  .hero { margin-top:32px; }
+  .element-list { grid-template-columns:repeat(6,1fr); }
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="logo">ELEMENT <span>LAB</span></div>
+  <div class="pill">● OFFLINE MODE</div>
+</header>
+
+<section class="hero">
+  <div class="eyebrow">CHEMISTRY // STUDY SYSTEM 001</div>
+  <h1>Master the first<br><span>36 elements.</span></h1>
+  <p class="subtitle">Learn the symbols. Test your recall. Build your chemistry streak.</p>
+</section>
+
+<div class="stats">
+  <div class="stat"><strong id="knownCount">0/36</strong><small>Mastered</small><div class="progress-bg"><div id="progress" class="progress-fill"></div></div></div>
+  <div class="stat"><strong id="reviewCount">36</strong><small>Cards to review</small></div>
+  <div class="stat"><strong id="accuracy">—</strong><small>Quiz accuracy</small></div>
+</div>
+
+<div class="workspace">
+<main>
+  <div class="controls">
+    <label class="label" for="direction">FLASHCARD DIRECTION</label>
+    <select id="direction">
+      <option value="name">Element name → Symbol</option>
+      <option value="symbol">Symbol → Element name</option>
+      <option value="number">Atomic number → Element</option>
+    </select>
+    <div class="flashcard-area">
+      <button class="card" id="card" aria-label="Flip flashcard">
+        <div class="face front">
+          <div class="card-top"><span id="frontType">ELEMENT NAME</span><span id="atomicFront" class="atomic">#01</span></div>
+          <div id="frontText" class="symbol">Hydrogen</div>
+          <div class="hint">TAP TO REVEAL ANSWER ↻</div>
+        </div>
+        <div class="face back">
+          <div class="card-top"><span>ANSWER REVEALED</span><span id="atomicBack" class="atomic">#01</span></div>
+          <div id="backText" class="element-name">H</div>
+          <div id="extraText" class="hint">Atomic number 1</div>
+        </div>
+      </button>
+    </div>
+    <div class="card-actions">
+      <button class="btn" id="prev">← Previous</button>
+      <button class="btn primary" id="flip">Reveal answer</button>
+      <button class="btn" id="next">Next →</button>
+    </div>
+    <div class="rating">
+      <button class="btn bad" id="again">↻ Study again</button>
+      <button class="btn good" id="master">✓ I know this</button>
+    </div>
+    <p class="muted">Be honest with yourself: mark a card mastered only when you can recall its answer without looking.</p>
+  </div>
+
+  <h3 class="section-title">⚡ Quick quiz</h3>
+  <div class="controls">
+    <div class="muted">Choose the correct answer. Questions are selected from the first 36 elements.</div>
+    <div id="quizQuestion" class="quiz-question">What is the symbol for Hydrogen?</div>
+    <div id="quizOptions" class="quiz-options"></div>
+    <div id="quizMessage" class="message" aria-live="polite"></div>
+    <button id="nextQuiz" class="btn primary" style="width:100%">Next question →</button>
+    <p class="muted" id="quizScore">Correct: 0 · Attempted: 0</p>
+  </div>
+</main>
+
+<aside class="side-panel">
+  <h3>Element index</h3>
+  <p class="muted">Select any element to jump to its flashcard.</p>
+  <div id="elementList" class="element-list"></div>
+  <div style="margin-top:22px;border-top:1px solid #29344e;padding-top:17px">
+    <h3>Study protocol</h3>
+    <p class="muted">01 — Read the prompt.</p>
+    <p class="muted">02 — Recall the answer first.</p>
+    <p class="muted">03 — Flip to check your memory.</p>
+    <p class="muted">04 — Repeat missed cards.</p>
+    <button id="shuffle" class="btn" style="width:100%;margin-top:8px">⇄ Shuffle cards</button>
+    <button id="reset" class="btn" style="width:100%;margin-top:8px">Reset progress</button>
+    <p class="muted">Progress saves automatically in this browser.</p>
+  </div>
+</aside>
+</div>
+<footer>ELEMENT LAB · PERIODIC TABLE TRAINING · ELEMENTS 1–36</footer>
+</div>
+
+<script>
+const elements = [
+ ["Hydrogen","H"],["Helium","He"],["Lithium","Li"],["Beryllium","Be"],
+ ["Boron","B"],["Carbon","C"],["Nitrogen","N"],["Oxygen","O"],
+ ["Fluorine","F"],["Neon","Ne"],["Sodium","Na"],["Magnesium","Mg"],
+ ["Aluminum","Al"],["Silicon","Si"],["Phosphorus","P"],["Sulfur","S"],
+ ["Chlorine","Cl"],["Argon","Ar"],["Potassium","K"],["Calcium","Ca"],
+ ["Scandium","Sc"],["Titanium","Ti"],["Vanadium","V"],["Chromium","Cr"],
+ ["Manganese","Mn"],["Iron","Fe"],["Cobalt","Co"],["Nickel","Ni"],
+ ["Copper","Cu"],["Zinc","Zn"],["Gallium","Ga"],["Germanium","Ge"],
+ ["Arsenic","As"],["Selenium","Se"],["Bromine","Br"],["Krypton","Kr"]
+].map(([name,symbol],i)=>({name,symbol,n:i+1}));
+
+const $ = id => document.getElementById(id);
+let order = elements.map((_,i)=>i);
+let position = 0;
+let flipped = false;
+let mastered = new Set();
+let quizCorrect = 0, quizAttempted = 0;
+let quizAnswered = false;
+let currentQuizAnswer = "";
+let quizPool = [];
+
+try {
+  const saved = JSON.parse(localStorage.getItem("elementLabProgress") || "{}");
+  mastered = new Set(Array.isArray(saved.mastered) ? saved.mastered : []);
+  quizCorrect = Number(saved.quizCorrect) || 0;
+  quizAttempted = Number(saved.quizAttempted) || 0;
+} catch(e) {}
+
+function save() {
+  try {
+    localStorage.setItem("elementLabProgress",JSON.stringify({
+      mastered:[...mastered],quizCorrect,quizAttempted
+    }));
+  } catch(e) {}
+}
+function current() { return elements[order[position]]; }
+
+function renderCard() {
+  const el = current();
+  const direction = $("direction").value;
+  flipped = false;
+  $("card").classList.remove("flipped");
+  $("flip").textContent = "Reveal answer";
+  $("atomicFront").textContent = "#" + String(el.n).padStart(2,"0");
+  $("atomicBack").textContent = "#" + String(el.n).padStart(2,"0");
+  $("frontType").textContent =
+    direction === "name" ? "ELEMENT NAME" :
+    direction === "symbol" ? "CHEMICAL SYMBOL" : "ATOMIC NUMBER";
+  $("frontText").className = "symbol";
+  $("frontText").textContent =
+    direction === "name" ? el.name :
+    direction === "symbol" ? el.symbol : el.n;
+  $("backText").className = "element-name";
+  $("backText").textContent =
+    direction === "name" ? el.symbol :
+    direction === "symbol" ? el.name : `${el.name} (${el.symbol})`;
+  $("extraText").textContent = `Atomic number ${el.n} · Element ${el.n} of 36`;
+  $("master").textContent = mastered.has(el.n) ? "✓ Mastered" : "✓ I know this";
+  $("prev").disabled = order.length < 2;
+  renderStats();
+  renderIndex();
+}
+function renderStats() {
+  $("knownCount").textContent = `${mastered.size}/36`;
+  $("reviewCount").textContent = 36-mastered.size;
+  $("progress").style.width = `${mastered.size/36*100}%`;
+  $("accuracy").textContent = quizAttempted
+    ? `${Math.round(quizCorrect/quizAttempted*100)}%` : "—";
+  $("quizScore").textContent =
+    `Correct: ${quizCorrect} · Attempted: ${quizAttempted}`;
+}
+function renderIndex() {
+  $("elementList").innerHTML = "";
+  elements.forEach((el,i)=>{
+    const b = document.createElement("button");
+    b.className = "mini" +
+      (order[position]===i ? " active" : "") +
+      (mastered.has(el.n) ? " known" : "");
+    b.innerHTML = `<span>${el.n}</span>${el.symbol}`;
+    b.title = el.name;
+    b.setAttribute("aria-label",`${el.n}: ${el.name}, ${el.symbol}`);
+    b.onclick = ()=>{
+      position=order.indexOf(i);
+      renderCard();
+    };
+    $("elementList").appendChild(b);
+  });
+}
+function flip() {
+  flipped=!flipped;
+  $("card").classList.toggle("flipped",flipped);
+  $("flip").textContent=flipped ? "Show question" : "Reveal answer";
+}
+function move(step) {
+  position=(position+step+order.length)%order.length;
+  renderCard();
+}
+$("card").onclick=flip;
+$("flip").onclick=flip;
+$("prev").onclick=()=>move(-1);
+$("next").onclick=()=>move(1);
+$("direction").onchange=renderCard;
+
+$("master").onclick=()=>{
+  mastered.add(current().n);
+  save(); renderCard();
+  if(position<order.length-1) move(1);
+};
+$("again").onclick=()=>{
+  mastered.delete(current().n);
+  save(); renderCard();
+};
+$("shuffle").onclick=()=>{
+  for(let i=order.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [order[i],order[j]]=[order[j],order[i]];
+  }
+  position=0; renderCard();
+};
+$("reset").onclick=()=>{
+  if(confirm("Reset all mastered cards and quiz scores?")){
+    mastered.clear(); quizCorrect=0; quizAttempted=0;
+    save(); renderCard(); newQuiz();
+  }
+};
+
+function newQuiz() {
+  quizAnswered=false;
+  $("quizMessage").textContent="";
+  $("quizOptions").innerHTML="";
+  const el=elements[Math.floor(Math.random()*elements.length)];
+  const askSymbol=Math.random()<0.5;
+  const prompt=askSymbol
+    ? `What is the symbol for ${el.name}?`
+    : `Which element uses the symbol ${el.symbol}?`;
+  currentQuizAnswer=askSymbol ? el.symbol : el.name;
+  $("quizQuestion").textContent=prompt;
+
+  const wrong=elements.filter(x=>x.n!==el.n);
+  for(let i=wrong.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [wrong[i],wrong[j]]=[wrong[j],wrong[i]];
+  }
+  const options=[currentQuizAnswer,...wrong.slice(0,3).map(x=>
+    askSymbol ? x.symbol : x.name
+  )];
+  for(let i=options.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [options[i],options[j]]=[options[j],options[i]];
+  }
+  quizPool=options;
+  options.forEach(answer=>{
+    const b=document.createElement("button");
+    b.className="btn quiz-option";
+    b.textContent=answer;
+    b.onclick=()=>answerQuiz(b,answer);
+    $("quizOptions").appendChild(b);
+  });
+}
+function answerQuiz(button,answer) {
+  if(quizAnswered) return;
+  quizAnswered=true;
+  quizAttempted++;
+  const buttons=[...$("quizOptions").children];
+  buttons.forEach(b=>{
+    b.disabled=true;
+    if(b.textContent===currentQuizAnswer) b.classList.add("correct");
+  });
+  if(answer===currentQuizAnswer){
+    quizCorrect++;
+    $("quizMessage").textContent="Correct! Excellent recall.";
+  } else {
+    button.classList.add("wrong");
+    $("quizMessage").textContent=`Not quite. The answer is ${currentQuizAnswer}.`;
+  }
+  save(); renderStats();
+}
+$("nextQuiz").onclick=newQuiz;
+
+renderCard();
+newQuiz();
+</script>
+</body>
+</html>
+
+
